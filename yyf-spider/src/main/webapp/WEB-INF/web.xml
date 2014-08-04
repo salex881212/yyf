@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app id="WebApp_ID" version="2.4"
+  xmlns="http://java.sun.com/xml/ns/j2ee" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+  
+  <display-name>bys-web</display-name>
+  
+  	<servlet>
+		<servlet-name>bysServlet</servlet-name>
+		<servlet-class>com.alex.bys.servlets.BysServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+  
+  	<filter>
+  		<filter-name>EncodingFilter</filter-name>
+  		<filter-class>com.alex.bys.filters.EncodingFilter</filter-class>
+  		<init-param>
+  			<param-name>encoding</param-name>
+  			<param-value>UTF-8</param-value>
+  		</init-param>
+  	</filter>
+  
+  	<filter>
+	  	<filter-name>ExceptionHandlerFilter</filter-name>
+	  	<filter-class>com.alex.bys.filters.ExceptionHandlerFilter</filter-class>
+  	</filter>
+  
+  	<filter-mapping>
+		<filter-name>EncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<filter-mapping>
+		<filter-name>ExceptionHandlerFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+		
+	<servlet-mapping>
+		<servlet-name>bysServlet</servlet-name>
+		<url-pattern>/*</url-pattern>
+	</servlet-mapping>
+  
+</web-app>

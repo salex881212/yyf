@@ -1,0 +1,177 @@
+buildscript {
+    repositories {
+		maven{ url 'http://repo1.maven.org/maven2/'}
+        mavenLocal()
+    }
+               
+    dependencies {
+		classpath "net.saliman:gradle-cobertura-plugin:1.1.1"
+	}       
+}
+
+
+configurations.all {
+            resolutionStrategy {
+                cacheDynamicVersionsFor 10, 'seconds'
+                cacheChangingModulesFor 0, 'seconds'
+            }
+        } 
+
+subprojects {
+    apply plugin: 'eclipse'
+    apply plugin: 'java'
+    apply plugin: 'findbugs'
+    apply plugin: 'cobertura'
+    
+    apply from: '../gradle/eclipse.gradle'
+
+    tasks.withType(Compile) { options.encoding = 'UTF-8' }
+    tasks.withType(Javadoc) { options.encoding = 'UTF-8' }
+    
+    group = 'com.alex.yyf.spider'
+    
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
+    version = '1.0'
+    
+    sourceSets {
+	    main {
+    		java {
+    			srcDir 'src/main/java'
+    		}
+    	}
+    	test {
+    		java {
+    			srcDir 'src/test/java'
+    		}
+    		resources {    				
+    			srcDir 'src/main/configure'
+    		}
+    	}
+    }
+
+    repositories {
+		maven{ url 'http://repo1.maven.org/maven2/'}
+        mavenLocal()
+    }
+    
+    dependencies {
+        
+    }
+    
+    jar {
+        manifest {
+            attributes 'Implementation-Title': name, 'Implementation-Version': version
+        }
+    }
+
+    findbugs {
+        toolVersion = "2.0.1"
+        sourceSets = [sourceSets.main]
+        ignoreFailures = true
+    }
+
+    task deleteConf(type: Delete) {
+        for(File f : file("src/main/configure").listFiles()){
+            if (f.isFile()){
+                delete f
+            }
+        }
+    }
+    
+    afterEvaluate {    
+        task copyDependProjects(type: Copy,dependsOn:[deleteConf]) {
+	        def useConf = 'dev'
+	        if (project.hasProperty('profile')) {
+	                useConf = "${profile}"
+	        }
+	        for(entry in configurations.compile.getAllDependencies()) { 
+	            if(entry instanceof 
+	            	org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency) {
+	            from (entry.dependencyProject.file('src/main/conf/static')) 
+	            into "src/main/configure"
+	            
+	            from (entry.dependencyProject.file("src/main/conf/${useConf}")) 
+	            into "src/main/configure"         
+	            } 
+	        }
+    	}
+    	
+    	task copyConf(type: Copy, dependsOn :[deleteConf, copyDependProjects]) {
+			def useConf = 'dev'
+        	if (project.hasProperty('profile')) {
+            	useConf = "${profile}"
+	        }
+	        
+			from "src/main/conf/${useConf}"
+			into "src/main/configure"
+			from "src/main/conf/static"
+			into "src/main/configure"
+    	}
+    	
+    	configure([project(':yyf-spider')]) {
+    		tasks.zip.dependsOn copyConf
+    	}
+    	
+    
+    	cobertura {
+    	    coverageReportDir = file('reports/cobertura-xml')
+    	    coverageDatafile = file('cobertura.ser')
+    	    coverageFormats = [ 'xml','html' ]
+    	} 
+   	
+    	
+    	tasks.eclipse.dependsOn copyConf
+    	tasks.jar.dependsOn copyConf
+    }
+    tasks.clean.delete << outputDir
+
+    uploadArchives {
+        repositories {
+            mavenLocal()
+        }
+    }
+}
+
+configure(subprojects) {
+	dependencies {
+		compile "org.projectlombok:lombok:1.12.2"
+        compile "log4j:log4j:1.2.17"
+        compile "com.google.guava:guava:14.0"
+        compile "commons-lang:commons-lang:2.6"
+        compile 'commons-io:commons-io:2.4'
+        compile 'commons-dbcp:commons-dbcp:1.4'
+        compile 'commons-beanutils:commons-beanutils:1.8.3'
+        compile 'commons-collections:commons-collections:3.2.1'
+        compile 'commons-pool:commons-pool:1.6'
+        compile 'commons-codec:commons-codec:1.8'
+		compile 'org.apache.directory.studio:org.dom4j.dom4j:1.6.1'
+		compile 'javax.servlet:servlet-api:2.4'
+		compile 'org.apache.httpcomponents:httpcore:4.1.3'
+		compile 'org.apache.httpcomponents:httpclient:4.1.3'
+		compile 'com.google.code.gson:gson:2.2.2'
+		compile 'com.alibaba:fastjson:1.1.39'
+		compile 'com.qiniu:sdk:6.1.0'
+		compile 'org.jsoup:jsoup:1.7.3'
+		
+        compile fileTree(dir: libDir, include: '*.jar')
+	}
+}
+
+project('yyf-spider') {
+    task zip(type: Zip, dependsOn: [jar]) {
+	  	destinationDir = file(outputDir)
+	  	into('resource') {
+	    	from('src/main/configure')
+	  	}
+	  
+	  	into ('lib') {
+	    	from jar.archivePath
+	    	from configurations.runtime
+	  	}
+	  	from 'shell'
+	}
+    defaultTasks 'clean', 'zip', 'uploadArchives'
+}
+
+defaultTasks 'clean', 'jar', 'zip'
