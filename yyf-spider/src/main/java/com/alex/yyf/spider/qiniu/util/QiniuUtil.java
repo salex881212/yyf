@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
+import lombok.extern.log4j.Log4j;
 
 import org.json.JSONException;
 
@@ -12,6 +15,7 @@ import com.alex.yyf.spider.qiniu.config.QiniuConfig;
 import com.alex.yyf.spider.utils.HttpClientUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import com.qiniu.api.auth.AuthException;
 import com.qiniu.api.auth.digest.Mac;
 import com.qiniu.api.io.IoApi;
@@ -22,6 +26,7 @@ import com.qiniu.api.rs.EntryPath;
 import com.qiniu.api.rs.PutPolicy;
 import com.qiniu.api.rs.RSClient;
 
+@Log4j
 public class QiniuUtil {
 
 	public static String getToken(String buckerName) throws AuthException, JSONException{
@@ -73,6 +78,27 @@ public class QiniuUtil {
 	    	 }
 	     }
 	}
+	
+	public static void handleUrl(Map<String,String> map, String buckerName, List<String> error_img) throws AuthException, JSONException, IOException{
+		
+		List<String> keys = Lists.newArrayList(map.keySet());
+	try{
+		QiniuUtil.checkExsit(buckerName, keys);
+		
+		log.info("upload " + keys.size() + " images! keys = " + keys);
+		for(String key : keys){
+			QiniuUtil.uploadFileFromURLWithReffered(QiniuConfig.getDrugBuckerName(), key, 
+					QiniuConfig.getMimeType(), map.get(key));
+		}
+	}catch(Exception e){
+		log.error(e);
+		for(String key : keys){
+			error_img.add(key + "\t" + map.get(key));
+		}
+		
+		
+	}
+}
 	
 	public static void main(String args[]) throws AuthException, JSONException, IOException{
 //		System.out.println(uploadFileFromURL("wx-img","image-test2.jpg","image/jpg","http://t12.baidu.com/it/u=416592824,17409986&fm=58"));

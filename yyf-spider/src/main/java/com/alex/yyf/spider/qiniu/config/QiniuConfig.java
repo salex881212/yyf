@@ -3,11 +3,11 @@ package com.alex.yyf.spider.qiniu.config;
 public class QiniuConfig {
 
 	public static String getAccessKey(){
-		return "b7lErKg2K_3pY0lSq7T_m9vbGxuZQpkNrxO8EOg1";
+		return "**";
 	}
 	
 	public static String getSecretKey(){
-		return "UBC0Ce2W0PtVIQua2CJV6gdjW5FcwIm-d0YJxVrS";
+		return "**";
 	}
 	
 	public static String getWxImgURL(String key){

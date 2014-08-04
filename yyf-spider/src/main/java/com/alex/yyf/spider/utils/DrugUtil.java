@@ -71,26 +71,7 @@ public class DrugUtil {
 //		System.out.println(QiniuUtil.uploadFileFromURLWithReffered(QiniuConfig.getDrugBuckerName(), key, QiniuConfig.getMimeType(), url));
 //	}
 	
-	private static void handleUrl(Map<String,String> map) throws AuthException, JSONException, IOException{
-		
-			List<String> keys = Lists.newArrayList(map.keySet());
-		try{
-			QiniuUtil.checkExsit(QiniuConfig.getDrugBuckerName(), keys);
-			
-			log.info("upload " + keys.size() + " images! keys = " + keys);
-			for(String key : keys){
-				QiniuUtil.uploadFileFromURLWithReffered(QiniuConfig.getDrugBuckerName(), key, 
-						QiniuConfig.getMimeType(), map.get(key));
-			}
-		}catch(Exception e){
-			log.error(e);
-			for(String key : keys){
-				error_img.add(key + "\t" + map.get(key));
-			}
-			
-			
-		}
-	}
+	
 	
 	public static void main(String args[]) throws IOException, AuthException, JSONException{
 		int pageNo = 1;
@@ -103,7 +84,7 @@ public class DrugUtil {
 					break;
 				}
 				outs.addAll(drugs);
-				handleUrl(map);
+				QiniuUtil.handleUrl(map, QiniuConfig.getDrugBuckerName(), error_img);
 				map.clear();
 			}catch(Exception e){
 				log.error(e);
