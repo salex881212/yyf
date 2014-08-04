@@ -82,21 +82,20 @@ public class QiniuUtil {
 	public static void handleUrl(Map<String,String> map, String buckerName, List<String> error_img) throws AuthException, JSONException, IOException{
 		
 		List<String> keys = Lists.newArrayList(map.keySet());
-	try{
-		QiniuUtil.checkExsit(buckerName, keys);
-		
-		log.info("upload " + keys.size() + " images! keys = " + keys);
-		for(String key : keys){
-			QiniuUtil.uploadFileFromURLWithReffered(QiniuConfig.getDrugBuckerName(), key, 
-					QiniuConfig.getMimeType(), map.get(key));
+		try{
+			QiniuUtil.checkExsit(buckerName, keys);
+			
+			log.info("upload " + keys.size() + " images! keys = " + keys);
+			for(String key : keys){
+				QiniuUtil.uploadFileFromURLWithReffered(QiniuConfig.getDrugBuckerName(), key, 
+						QiniuConfig.getMimeType(), map.get(key));
+			}
+		}catch(Exception e){
+			log.error(e);
+			for(String key : keys){
+				error_img.add(key + "\t" + map.get(key));
 		}
-	}catch(Exception e){
-		log.error(e);
-		for(String key : keys){
-			error_img.add(key + "\t" + map.get(key));
-		}
-		
-		
+
 	}
 }
 	
